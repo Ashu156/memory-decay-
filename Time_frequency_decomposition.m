@@ -15,20 +15,22 @@ s2 = {s1.name};          % Extract the name of workspace variables
 ind = [];                % Initiate an empty array for storing the indices of variables which are struct array
 
 for k = 1:numel(s1) % Loop over all the workspace variables
-    c = s1(k).class; % Extract class of  workspace variables
+%     c = s1(k).class; % Extract class of  workspace variables
     
-    if strcmp (c, 'struct') == 1 % If the variable is a struct array, then
+    if strcmp (s1(k).class, 'struct') == 1 % If the variable is a struct array, then
         ind = [ind, k];          % update the empty array with the index of the variable
+        
     end % end of if-else statment (conditional statement)
     
 end      % end of for loop
 
 
 
-for i = 1:numel(ind)               % Loop over the elements of the indices array to extract and store only those variables that are struct arrays
-    temp = evalin('base',  s2{i}); % Extract data from the struct array
-    combined{i} = temp;            % Store the data
-end                                % end of for loop
+for i = 1:numel(ind)                                 % Loop over the elements of the indices array to extract and store only those variables that are struct arrays
+    combined{i} = evalin('base',  s2{i});            % Store the data
+    keyword_target{i} = combined{i}.title;           % Channels of choice (first 4 are for raw data retrievaland the last one is for timestamp  retrieval)
+
+end   % end of for loop
 
 
 selected = []; % Initiate an empty array for stoing the indices of variables of interest
@@ -36,13 +38,13 @@ selected = []; % Initiate an empty array for stoing the indices of variables of 
 for k = 1:numel(combined) % Loop over all the struct arrays to choose channels of choice 
     
     % Also check if channel names are E:E1 or just E1
-    keyword_target = {'E:E1'; 'E:E2'; 'E:E3'; 'E:E4'; 'LIGHT'}; % Channels of choice (first 4 are for raw data retrievaland the last one is for timestamp  retrieval)
+
     keyword_retrieved = combined{k}.title;                      % channel name of struct array
     
     for j = 1:numel(keyword_target)   % Loop over the channel names of choice
         
-        if strcmp(keyword_retrieved,  keyword_target{j}) == 1 % Compare the channel names
-            selected = [selected, k];                         % and store the indices of matched channel names
+        if strcmpi(keyword_retrieved,  keyword_target{j}) == 1 % Compare the channel names
+            selected = [selected, k];                          % and store the indices if channel names match
         end
         
     end
@@ -51,16 +53,56 @@ end
 
 %% Load the selected data for analysis
 
-timestamps = combined{selected(1)}.times;   % Timestamps for the optical stimulus
-Ch1_data = combined{selected(2)}.values;    % Data from the 1st channel
-Ch2_data = combined{selected(3)}.values;    % Data from the 2nd channel
-Ch3_data = combined{selected(4)}.values;    % Data from te 3rd channel
-Ch4_data = combined{selected(5)}.values;    % Data  from the 4th channel
+for k = 1:numel(keyword_target)
+    token = keyword_target{k};
+    
+     switch(token)
+         
+         case char('LIGHT')
+             if regexp(token,  char('LIGHT'), 'ignorecase')
+                 timestamps = combined{selected(k)}.times;   % Timestamps for the optical stimulus
+             end
+             
+             case char('Digital Event Detector Event')
+             if regexp(token,  char('Digital Event Detector Event'), 'ignorecase')
+                 timestamps = combined{selected(k)}.times;   % Timestamps for the optical stimulus
+             end
+             
+             case char('E:E1')
+             if regexp(token,  char('E:E1'), 'ignorecase')
+                 Ch1_data = combined{selected(k)}.values;    % Data from the 1st channel
+             end
+             
+             case char('E:E2')
+             if regexp(token,  char('E:E2'), 'ignorecase')
+                 Ch2_data = combined{selected(k)}.values;    % Data from the 2nd channel
+             end
+             
+             case char('E:E3')
+             if regexp(token, char('E:E3'), 'ignorecase')
+                 Ch3_data = combined{selected(k)}.values;    % Data from te 3rd channel
+             end
+           
+             case char('E:E4')
+             if regexp(token, char('E:E4'), 'ignorecase')
+                 Ch4_data = combined{selected(k)}.values;    % Data  from the 4th channel
+             end
+             
+     end
+end
+
+%% Define values of some variables 
+
+prompt = {'Sampling frequency','Downsampling factor:'};
+dlgtitle = 'Input';
+dims = [1 35];
+definput = {'10000','2'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
 
 %% parameters for downsampling the raw data
 
-downsampling_factor = 2;          % downsample the raw data by this factor
-Fs = 1e4/downsampling_factor;     % new sampling rate after downsampling
+downsampling_factor = str2double(answer(2));          % downsample the raw data by this factor
+Fs = str2double(answer(1))/downsampling_factor;     % new sampling rate after downsampling
 
 %% downsampling the raw data
 
@@ -74,14 +116,20 @@ ind = dsearchn(times', timestamps);                       % find indices of even
 
 %% Extracting windowed data of choice
 
-n_channels = 4; % number of channels recorded from
+prompt = {'Numbers of channels:' 'Length of desired epoch (in s):'};
+dlgtitle = 'Channels';
+dims = [1 35];
+definput = {'4', '1'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+
+n_channels = str2double(answer(1)); % number of channels recorded from
 
 t_start = timestamps(1, 1);           % 1st event
 ind_start = dsearchn(times',t_start); % index of 1st event in the time vector
 
-time = 1;                 % Extract data around the event for this much time (in seconds)
-t_pt = Fs*time + 1;       % number of time points
-step_size = Fs/2;         % step size
+time = str2double(answer(2)); % Extract data around the event for this much time (in seconds)
+t_pt = Fs*time + 1;           % number of time points
+step_size = Fs/2;             % step size
 
 lfp_data = zeros(n_channels, t_pt, length(timestamps)); % initiate an empty vector to store data for all channels 
 data = zeros(t_pt, n_channels);                         % initiate temporary vector to store data
@@ -101,6 +149,8 @@ for i = 1:length(timestamps)         % Loop over number of events
     
 end
 
+tx = linspace(0, time*1000, size(lfp_data, 2)); % time vector in ms
+
 % clear unnecessary variables from workspace to free up memory
 clear temp c combined Ch1_data Ch2_data Ch3_data Ch4_data Ch1_ds Ch2_ds Ch3_ds Ch4_ds data keyword_target keyword_retrieved selected
 
@@ -108,20 +158,26 @@ clear temp c combined Ch1_data Ch2_data Ch3_data Ch4_data Ch1_ds Ch2_ds Ch3_ds C
 
 figure('Color',[1 1 1])
 
-for i = 1:4
+for i = 1:n_channels
     subplot(2,2,i)
-    plot(mean(squeeze(lfp_data(i,:, :)), 2), 'linew', 1)
-    xlabel('Time (samples)', 'FontSize',  14)
+    plot(tx, mean(squeeze(lfp_data(i,:, :)), 2), 'linew', 1)
+    xlabel('Time (ms)', 'FontSize',  14)
     ylabel('Amplitude (mV)',  'FontSize', 14)
     title(strcat('Channel', {' '}, num2str(i) ))
 end
 
 %% Wavelet transform (Time-frequency decomposition)
 
+prompt = {'Minimum frequency:','Maximum frequency:', 'Length of frequency vector:'};
+dlgtitle = 'Frequency vector';
+dims = [1 35];
+definput = {'0.1',  '500',  '500'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+
 % Wavelet parameters
-min_freq = 0.1; % minimum frequency
-max_freq = 500; % maximum frequency
-num_frex = 500; % number of  frequencies
+min_freq = str2double(answer(1)); % minimum frequency
+max_freq = str2double(answer(2)); % maximum frequency
+num_frex = str2double(answer(3)); % number of  frequencies
 
 % Other wavelet parameters
 frex = linspace(min_freq, max_freq, num_frex); % frequency vector
@@ -189,11 +245,17 @@ TF(k,  :, :) = reshape(tf, 1, size(tf, 1), size(tf, 2)); % store the results for
 
 end % end of channel loop
 
-tx = linspace(0, size(lfp, 1), size(lfp, 1))./ Fs*1e3; % time vector in ms
+
 
 %% Baseline corrected power
 
-baselinetime = [400 500]; % baseline time for normaliation (in ms)
+prompt = {'Baseline start (in ms):','Baseline end (in ms):'};
+dlgtitle = 'Baseline';
+dims = [1 35];
+definput = {'400',  '500'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
+
+baselinetime = [str2double(answer(1)) str2double(answer(2))]; % baseline time for normaliation (in ms)
 
 % Convert baseline window time to indices
 [~, baselineidx(1)] = min(abs(tx - baselinetime(1))); % Find starting baseline time in the time vector
@@ -238,9 +300,9 @@ for i = 1:n_channels % Loop over all channels
     colorbar; % show colorbar
     xlabel('Time (ms)', 'FontSize', 14); ylabel('Frequency (Hz)', 'FontSize', 14); % X- and Y-axis labels
     hold on % hold on to the figure(subplot) handle
-    plot([500 500], [min_freq max_freq], '--w', 'LineWidth', 1.5) % plot a vertical dashed white line at the time of event onset
-    xlim([450 550]) % Confine X-axis to 450 to 550 ms
-    ylim([0.1 500])
+    plot([baselinetime(2) baselinetime(2)], [min_freq max_freq], '--w', 'LineWidth', 1.5) % plot a vertical dashed white line at the time of event onset
+    xlim([baselinetime(2) - 50 baselinetime(2) + 50]) % Confine X-axis to 50 ms bfore and 50 ms after the event
+    ylim([min(frex) max(frex)])
     caxis([-5 10]) % Define the range of the colorbar
     title(strcat('Channel', {' '}, num2str(i) )) % title for the subplot
     hold off % end holding on to the figure(subplot) handle
@@ -249,7 +311,7 @@ end % end of for loop
 
 %% saving the results
 
-save(strcat(path, 'R3 before pretest power 5kHz.mat'), 'lfp_data', 'final_baselineZ', 'tx',  'frex'); % save the results
+save(strcat(path, 'R1 power 5kHz.mat'), 'lfp_data', 'final_baselineZ', 'tx',  'frex'); % save the results
 toc; % stop the timer
 
 %% end of script
