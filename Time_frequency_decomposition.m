@@ -181,12 +181,12 @@ num_frex = str2double(answer(3)); % number of  frequencies
 
 % Other wavelet parameters
 frex = linspace(min_freq, max_freq, num_frex); % frequency vector
-time = -0.02:1/Fs:0.02;                        % time vector for wavelet transform
-half_wave = (length(time) - 1)/2;              % half of the length of the time vector
+time = -0.02:1/Fs:0.02;                        % time support for Morlet wavelet
+half_wave = (length(time) - 1)/2;              % half length of the time support
 
 range_cycles = [ 2  10 ];                                        % range of cycle paramter
 cycles = linspace(range_cycles(1), range_cycles(end), num_frex); % cycle vector
-num_cycles = length(range_cycles);                               % length of cycl vector
+num_cycles = length(range_cycles);                               % length of cycle vector
 
 TF = zeros(n_channels, length(frex), size(lfp_data, 2)); % initiating a zero matrix for storing the TF decomposition data
 
