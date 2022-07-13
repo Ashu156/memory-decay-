@@ -93,11 +93,11 @@ end
 
 %% Define values of some variables 
 
-prompt = {'Sampling frequency','Downsampling factor:'};
+prompt = {'Sampling frequency (in Hz):','Downsampling factor:'};
 dlgtitle = 'Input';
 dims = [1 35];
 definput = {'10000','2'};
-answer = inputdlg(prompt,dlgtitle,dims,definput);
+answer = inputdlg(prompt, dlgtitle, dims, definput);
 
 %% parameters for downsampling the raw data
 
@@ -120,12 +120,12 @@ prompt = {'Numbers of channels:' 'Length of desired epoch (in s):'};
 dlgtitle = 'Channels';
 dims = [1 35];
 definput = {'4', '1'};
-answer = inputdlg(prompt,dlgtitle,dims,definput);
+answer = inputdlg(prompt, dlgtitle, dims, definput);
 
 n_channels = str2double(answer(1)); % number of channels recorded from
 
 t_start = timestamps(1, 1);           % 1st event
-ind_start = dsearchn(times',t_start); % index of 1st event in the time vector
+ind_start = dsearchn(times', t_start); % index of 1st event in the time vector
 
 time = str2double(answer(2)); % Extract data around the event for this much time (in seconds)
 t_pt = Fs*time + 1;           % number of time points
@@ -168,7 +168,7 @@ end
 
 %% Wavelet transform (Time-frequency decomposition)
 
-prompt = {'Minimum frequency:','Maximum frequency:', 'Length of frequency vector:'};
+prompt = {'Minimum frequency (in Hz):','Maximum frequency (in Hz):', 'Length of frequency vector (in Hz):'};
 dlgtitle = 'Frequency vector';
 dims = [1 35];
 definput = {'0.1',  '500',  '500'};
@@ -181,7 +181,7 @@ num_frex = str2double(answer(3)); % number of  frequencies
 
 % Other wavelet parameters
 frex = linspace(min_freq, max_freq, num_frex); % frequency vector
-time = -0.02:1/Fs:0.02;                        % time support for Morlet wavelet
+time = -0.02:1/Fs:0.02;                        % time support for Morlet wavelet (in s)
 half_wave = (length(time) - 1)/2;              % half length of the time support
 
 range_cycles = [ 2  10 ];                                        % range of cycle paramter
@@ -191,7 +191,7 @@ num_cycles = length(range_cycles);                               % length of cyc
 TF = zeros(n_channels, length(frex), size(lfp_data, 2)); % initiating a zero matrix for storing the TF decomposition data
 
 for k = 1:n_channels                 % Loop over all the channels
-    lfp = squeeze(lfp_data(k,:,:));  % data from each channel
+    lfp = squeeze(lfp_data(k, :, :));  % data from each channel
 
     % FFT parameters
     nKern = length(time);                 % length of the kernel
@@ -224,7 +224,7 @@ for k = 1:n_channels                 % Loop over all the channels
 
                % Need separate FFT 
                waveletX = fft(wavelet, nConv);       % FFT of the Morlet wavelet
-               waveletX = waveletX./max(waveletX);   % Normalized FFT  
+               waveletX = waveletX ./ max(waveletX);   % Normalized FFT  
         
         
         %  Notice that the fft_lfp cell changes on each iteration
