@@ -181,7 +181,7 @@ num_frex = str2double(answer(3)); % number of  frequencies
 
 % Other wavelet parameters
 frex = linspace(min_freq, max_freq, num_frex); % frequency vector
-time = -0.02:1/Fs:0.02;                        % time support for Morlet wavelet (in s)
+time = -1:1/Fs:1;                        % time support for Morlet wavelet (in s)
 half_wave = (length(time) - 1)/2;              % half length of the time support
 
 range_cycles = [ 2  10 ];                                        % range of cycle paramter
