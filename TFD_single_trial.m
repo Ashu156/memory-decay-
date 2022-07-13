@@ -6,79 +6,90 @@ clc;       % clear command window
 
 %% Loading the raw data 
 
-[file, path] = uigetfile;
-load(strcat(path, file));
+[file, path] = uigetfile; % choose the file using GUI
+load(strcat(path, file)); % load the file
 
 %% Wavelet transform
 
-clear final_baselineZ
+clear final_baselineZ % clear this variable as it is not required and occupies a lot of space
+
+prompt = {'Sampling frequency:', 'Minimum frequency:','Maximum frequency:', 'Length of frequency vector:'};
+dlgtitle = 'Frequency vector';
+dims = [1 35];
+definput = {'5000', '0.1',  '500',  '500'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
 
 % Wavelet parameters
-min_freq = 0.1;     % minimum of frequency vector
-max_freq = 500;     % maximum of  fequency vector
-num_frex = 500;     % length of  frequency vector
-Fs = 5000;          % To be changed manually as per the downsampling factor 
+Fs = str2double(answer(1));          % To be changed manually as per the downsampling factor 
+min_freq = str2double(answer(2));     % minimum of frequency vector
+max_freq = str2double(answer(3));     % maximum of  fequency vector
+num_frex = str2double(answer(4));     % length of  frequency vector
+
 
 % Other wavelet parameters
-frex = linspace(min_freq, max_freq, num_frex);
-time = -0.02:1/Fs:0.02;
-half_wave = (length(time) - 1)/2;
+frex = linspace(min_freq, max_freq, num_frex);  % frequency vector
+time = -0.02:1/Fs:0.02;                         % time support for Morlet wavelet
+half_wave = (length(time) - 1)/2;               % half length of the time support
 
-lfp = lfp_data;
-
+lfp = lfp_data; 
+clear lfp_data 
 
 % FFT parameters
-nKern = length(time);
+nKern = length(time);                           % length of the kernel
 
 % Initialize output time-frequency data
 n_channels = size(lfp, 1);
 n_trials = size(lfp, 3);
 
-clear lfp_data 
-
 %% 
 
-tf1 = zeros(length(frex), size(lfp, 2), size(lfp,  3));
+tf1 = zeros(length(frex), size(lfp, 2), size(lfp,  3)); % Initiate a zeros matrix to store the results
 
 %%
 
-temp_data1 = squeeze(lfp(3,:,:)); % To be changed manually for chnnelof choice,e.g., here it is for Ch2
+prompt = {'Which channel do  you want to analyze:'};
+dlgtitle = 'Channels';
+dims = [1 35];
+definput = {'2'};
+answer = inputdlg(prompt,dlgtitle,dims,definput);
 
-nData1 = size(temp_data1, 1)*size(temp_data1, 2); % number of data points
-nConv1 = nKern + nData1 - 1;                      % number of  points in convolution
+temp_data1 = squeeze(lfp(str2double(answer(1)),:,:)); % LFP data from channel of choice
 
-range_cycles = [ 2  10 ];                          % range of the cycle parameter
-cycles = linspace(range_cycles(1), range_cycles(end), num_frex);
-num_cycles = length(range_cycles);
+nData1 = size(temp_data1, 1)*size(temp_data1, 2);     % number of data points
+nConv1 = nKern + nData1 - 1;                          % number of  points in convolution
+
+range_cycles = [ 2  10 ];                             % range of the cycle parameter
+cycles = linspace(range_cycles(1), range_cycles(end), num_frex); % cycle vector
+num_cycles = length(range_cycles);                               % length of cycle vector
 
 % FFT of total data
-fft_lfp1 = fft( reshape(temp_data1, 1, []), nConv1);
+fft_lfp1 = fft( reshape(temp_data1, 1, []), nConv1); % FFT of single channel LFP 
     
-for cyclei = 1:length(num_cycles)
+for cyclei = 1:length(num_cycles) % Loop over all the cycles
         
-    for fi = 1:length(frex)
+    for fi = 1:length(frex) % Loop over all the frequencies
             
             % Create wavelet and get its FFT
-    s        = cycles(fi) /(2*pi*frex(fi));
+    s        = cycles(fi) /(2*pi*frex(fi)); % width of the wavelet for every cycle and every frequency
 
-    wavelet  = exp(2*1i*pi*frex(fi).*time) .* exp(-time.^2./(2*s^2));
+    wavelet  = exp(2*1i*pi*frex(fi).*time) .* exp(-time.^2./(2*s^2)); % Morlet wavelet function
     
     % Run convolution for each of total, induced, and evoked
    
 
         % Need separate FFT 
-        waveletX = fft(wavelet, nConv1);
-        waveletX = waveletX./max(waveletX);
+        waveletX = fft(wavelet, nConv1);    % FFT of the Morlet wavelet
+        waveletX = waveletX./max(waveletX); % Normalized FFT  
         
         
         %  Notice that the fft_lfp cell changes on each iteration
-        as1 = ifft(waveletX.*fft_lfp1, nConv1);
-        as1 = as1(half_wave + 1:end - half_wave);
-        as1 = reshape(as1, size(temp_data1, 1), size(temp_data1, 2));
+        as1 = ifft(waveletX.*fft_lfp1, nConv1);   % Multiply FFT of wavelet and FFT of LFP and then perform  inverse FFT on the product
+        as1 = as1(half_wave + 1:end - half_wave); % Keeping the rsults for positive frequencies and discarding that for negative frequencies
+        as1 = reshape(as1, size(temp_data1, 1), size(temp_data1, 2)); % reshape the result as it was in the input format (i.e, times X trials)
         
             % Compute power
            
-            tf1(fi, :, :) = abs(as1).^2;  % store powr values for all time points and all trials
+            tf1(fi, :, :) = abs(as1).^2;  % store power values for all time points and all trials
             
             
     
@@ -90,12 +101,10 @@ for cyclei = 1:length(num_cycles)
 
 end % end cycle loop
 
-    
-tx = linspace(0, 1000, size(lfp, 2)); % time vector in ms
 
-%%
+%% saving the results
 
-save(strcat(path, 'R3 before pretest_Ch3 trialwise power 5 kHz.mat'), 'tf1', 'tx', 'frex');
+save(strcat(path, 'R3 before pretest Ch', answer(1),' trialwise power 5 kHz.mat'), 'tf1', 'tx', 'frex');
 clear tf1
 
 %% end of script
