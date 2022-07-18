@@ -58,8 +58,8 @@ for k = 1:numel(keyword_target)
     
      switch(token)
          
-         case char('LIGHT')
-             if regexp(token,  char('LIGHT'), 'ignorecase')
+         case char('Light')
+             if regexp(token,  char('Light'), 'ignorecase')
                  timestamps = combined{selected(k)}.times;   % Timestamps for the optical stimulus
              end
              
@@ -311,7 +311,7 @@ end % end of for loop
 
 %% saving the results
 
-save(strcat(path, 'R1 power 5kHz.mat'), 'lfp_data', 'final_baselineZ', 'tx',  'frex'); % save the results
+save(strcat(path, file(1:end-4), 'R1 power 5kHz.mat'), 'lfp_data', 'final_baselineZ', 'tx',  'frex'); % save the results
 toc; % stop the timer
 
 %% end of script
