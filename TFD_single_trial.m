@@ -104,7 +104,9 @@ end % end cycle loop
 
 %% saving the results
 
-save(strcat(path, 'R3 before pretest Ch', answer(1),' trialwise power 5 kHz.mat'), 'tf1', 'tx', 'frex');
+target = strcat(path, file(1:end-15),' Ch', answer(1), ' trialwise power 5 kHz.mat');
+save(target{1}, 'tf1', 'tx', 'frex');
 clear tf1
+
 
 %% end of script
