@@ -1,3 +1,15 @@
+%% Description:
+
+% This script performs the time-frequency decomposition of a time-domain signal using the Morlet wavelet function. Parameters defined are user-defined through a 
+% pop-up dialog box. Finally, it saves the results as a matrix (frequencis X time) averaged over all the trials.
+
+% Written in  MATLAB 2018b.
+% Tested in MATLAB 2018b and 2022a.
+
+% Requires the Signal Processing Toolbox.
+
+%% 
+
 tic;       % start timer
 close all; % close all open tabs in MATLAB
 clear;     % clear workspace
