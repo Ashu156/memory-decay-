@@ -1,5 +1,17 @@
 %%
 
+% This script extracts the user-defined frequency band specific power from the single trial time-frequency decomposition
+
+% Basically it plots the results obtained from sript 01.
+% INPUT: Results saved from script 03.
+% OUTPUT: User-defined frequency band specific power for all trials and then segregates this into blocks where blocks are represent power averaged over
+%         certain number of trials defined the user.
+
+% Written in  MATLAB 2018b.
+% Tested in MATLAB 2018b and 2022a.
+
+%%
+
 tic;       % start timer
 close all; % close all open tabs in MATLAB
 clear;     % clear workspace
