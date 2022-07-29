@@ -4,6 +4,10 @@
 % 1. Trial-averaged time-domain signal (averaged over multiple trials) for all the channels (4 in this case)
 % 2. Trial-averaged spectrograms (time-frequency decomposition results averaged over multile trials) for all the channels (4 in this case)
 
+% Basically it plots the results obtained from sript 01.
+% INPUT: Results saved from script 01.
+% OUTPUT: Plots for results obtained from script 01.
+
 % Written in  MATLAB 2018b.
 % Tested in MATLAB 2018b and 2022a.
 
