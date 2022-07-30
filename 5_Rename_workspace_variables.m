@@ -1,4 +1,11 @@
 %%
+% This script renames the variables loaded into the workspace so that the animal ID is concatenated to it. For example, if the loaded variables are 
+% tf, frex, tx, etc. and come from the animal G1 C1 0L0R, then this script will rename as tf_G1_C1_0L0R, frex_G1_C1_0L0R, tx_G1_C1_0L0R, etc. respectively 
+% and saves them in the respective folder. This will help in loading the data from all the animals at once.
+
+% Written and tested in MATLAB 2018b.
+
+%%
 clear;
 close all;
 clc;
