@@ -5,16 +5,16 @@
 % The data needs to be organized in the following format:
 % 
 % Parent folder  -> one parent folder
-% ?                     
-% ????animal1           -> one folder per mouse
-% ?   ?   R1 power 5kHz.mat     -> saved file for R1 session
-% ?   ?   R2 power 5kHz.mat     -> saved file for R2 session
-% ?   ?   R3a power 5kHz.mat    -> saved file for R3a session
-% ?   
-% ????animal2
-%     ?   R1 power 5kHz.mat      -> saved file for R1 session
-%     ?   R2 power 5kHz.mat      -> saved file for R2 session
-%     ?   R3a power 5kHz.mat     -> saved file for R3a session
+% |                     
+% ||||animal1           -> one folder per mouse
+% |   |   R1 power 5kHz.mat     -> saved file for R1 session
+% |   |   R2 power 5kHz.mat     -> saved file for R2 session
+% |   |   R3a power 5kHz.mat    -> saved file for R3a session
+% |   
+% ||||animal2
+%     |   R1 power 5kHz.mat      -> saved file for R1 session
+%     |   R2 power 5kHz.mat      -> saved file for R2 session
+%     |   R3a power 5kHz.mat     -> saved file for R3a session
 % 
 % Written and tested in MATLAB 2018b.
 
